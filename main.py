@@ -1,66 +1,84 @@
 import os
-from pyrogram import Client, filters
-from pytgcalls import PyTgCalls
-from pytgcalls.types.input_stream import AudioPiped
-from pytgcalls.types.input_stream.quality import HighQualityAudio
-from yt_dlp import YoutubeDL
+import asyncio
+from datetime import datetime
 
-API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH")
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-SESSION = os.environ.get("SESSION")
+from pyrogram import Client, filters
+from pyrogram.types import Message
+
+# ================== CONFIG ==================
+
+API_ID = int(os.environ.get("API_ID", 0))
+API_HASH = os.environ.get("API_HASH", "")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+CHANNEL_ID = os.environ.get("CHANNEL_ID", "")  # like -100xxxxxxx or @channelusername
+
+if not all([API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID]):
+    print("❌ Missing environment variables")
+    print("Set: API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID")
+    exit(1)
+
+# ================== BOT ==================
 
 app = Client(
-    "musicbot",
+    "vip_bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
+    bot_token=BOT_TOKEN
 )
 
-user = Client(
-    SESSION,
-    api_id=API_ID,
-    api_hash=API_HASH,
-)
-
-call = PyTgCalls(user)
-
-ydl_opts = {"format": "bestaudio"}
+# ================== COMMANDS ==================
 
 @app.on_message(filters.command("start"))
-async def start(_, m):
-    await m.reply("🎵 VC Music Bot Ready!")
-
-@app.on_message(filters.command("play") & filters.group)
-async def play(_, m):
-    if len(m.command) < 2:
-        return await m.reply("❌ Song name দাও")
-
-    query = " ".join(m.command[1:])
-    msg = await m.reply("🔍 Searching...")
-
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(f"ytsearch:{query}", download=False)["entries"][0]
-        url = info["url"]
-
-    await call.join_group_call(
-        m.chat.id,
-        AudioPiped(url, HighQualityAudio()),
+async def start(_, message: Message):
+    await message.reply_text(
+        "👋 **Welcome!**\n\n"
+        "This is a **VIP Telegram Bot**.\n"
+        "All replies are in English.\n\n"
+        "Type /help to see available commands."
     )
-    await msg.edit(f"▶️ Playing: {info['title']}")
 
-@app.on_message(filters.command("stop"))
-async def stop(_, m):
-    await call.leave_group_call(m.chat.id)
-    await m.reply("⏹ Stopped")
+@app.on_message(filters.command("help"))
+async def help_cmd(_, message: Message):
+    await message.reply_text(
+        "📌 **Available Commands**\n\n"
+        "/start - Start the bot\n"
+        "/help - Show help\n"
+        "/ping - Check bot status\n"
+    )
+
+@app.on_message(filters.command("ping"))
+async def ping(_, message: Message):
+    await message.reply_text("🏓 Pong! Bot is running perfectly.")
+
+# ================== DAILY POST ==================
+
+async def daily_post():
+    await app.wait_until_ready()
+    while True:
+        try:
+            text = (
+                "📢 **Daily VIP Update**\n\n"
+                f"🕒 Date & Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                "🔥 Stay tuned for more updates!\n"
+                "🚀 Powered by VIP Bot"
+            )
+            await app.send_message(CHANNEL_ID, text)
+            print("✅ Daily post sent")
+        except Exception as e:
+            print("❌ Daily post error:", e)
+
+        await asyncio.sleep(86400)  # 24 hours
+
+# ================== START ==================
 
 async def main():
     await app.start()
-    await user.start()
-    await call.start()
-    print("Bot started")
-    await idle()
+    print("🤖 VIP Bot Started")
+    asyncio.create_task(daily_post())
+    await asyncio.Event().wait()
 
+if __name__ == "__main__":
+    asyncio.run(main())
 if __name__ == "__main__":
     import asyncio
     from pyrogram import idle
