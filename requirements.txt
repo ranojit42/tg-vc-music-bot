@@ -1,5 +1,6 @@
 pyrogram==2.0.106
-tgcrypto
-pytgcalls==0.9.7
+tgcrypto==1.2.5
+pytgcalls==3.0.0.dev24
 yt-dlp
+youtube-search-python
 ffmpeg-python
