@@ -1,0 +1,18 @@
+{
+  "name": "tg-vc-music-bot-web",
+  "version": "1.0.0",
+  "description": "Landing page for Buttey Queen Assistant Telegram Bot with Vercel Web Analytics",
+  "scripts": {
+    "dev": "npx serve public",
+    "build": "echo 'Static HTML - no build needed'",
+    "start": "npx serve public"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "music",
+    "analytics"
+  ],
+  "author": "@XEROX_MOD",
+  "license": "MIT"
+}
